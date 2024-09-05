@@ -11,6 +11,7 @@ app = Flask(__name__)
 flag = 1
 qwen_cookie = ""
 
+
 @plugins.register(
     name="FreeAI",
     desire_priority=1000,
@@ -35,14 +36,7 @@ class FreeAI(Plugin):
         self.app.run(host='0.0.0.0', port=5000)
 
     def on_handle_context(self, e_context):
-        global flag,qwen_cookie
-        # 如果config.json都为空
-        if qwen_cookie == "":
-            reply = Reply()
-            reply.type = ReplyType.TEXT
-            reply.content = " FreeAI 插件未配置，请配置"
-            e_context['reply'] = reply
-            e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
+        global flag, qwen_cookie
         if e_context['context'].type != ContextType.TEXT:
             logger.error("FreeAI only supports text context")
             return
@@ -57,6 +51,10 @@ class FreeAI(Plugin):
 
 def to_qwen(content):
     global qwen_cookie
+    # 如果config.json都为空
+    if qwen_cookie == "" or qwen_cookie == None:
+        return "FreeAI插件未配置，请配置"
+
     # 目标URL
     url = 'https://qianwen.biz.aliyun.com/dialog/conversation'
 
@@ -93,9 +91,11 @@ def to_qwen(content):
     except:
         return "cookie配置错误"
 
+
 # 接收请求
 @app.route('/qwen/chat/completions', methods=['POST'])
 def qwen_post():
+
     # 获取JSON格式的请求数据
     data = request.get_json()
     # 处理数据...
